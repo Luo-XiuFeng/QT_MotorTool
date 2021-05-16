@@ -14,7 +14,7 @@
 #include "Dial.h"
 
 // 接收缓冲区大小，单位字节
-#define BufferSize      50
+#define BufferSize      1024
 
 
 QT_BEGIN_NAMESPACE

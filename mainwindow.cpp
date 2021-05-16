@@ -163,7 +163,7 @@ MainWindow::MainWindow(QWidget *parent)
     VDial->Value_Text = "%1V";
     VDial->iconfile = ":img/V";
     VDial->icon = QPixmap(":img/V");
-    VDial->setMinimumSize(290,270);
+    VDial->setMinimumSize(270,240);
     VDial->setValues(0,0,48,0);
     VDial->setTimerType(40,4);
     VDial->Scale_decimal = false;
@@ -178,7 +178,7 @@ MainWindow::MainWindow(QWidget *parent)
     ADial->Value_Text = "%1A";
     ADial->iconfile = ":img/A";
     ADial->icon = QPixmap(":img/A");
-    ADial->setMinimumSize(290,270);
+    ADial->setMinimumSize(270,240);
     ADial->setValues(0,-50,50,0);
     ADial->setTimerType(40,4);
     ADial->Scale_decimal = false;
@@ -193,7 +193,7 @@ MainWindow::MainWindow(QWidget *parent)
     SDial->Value_Text = "%1RPM";
     SDial->iconfile = ":img/S";
     SDial->icon = QPixmap(":img/S");
-    SDial->setMinimumSize(290,270);
+    SDial->setMinimumSize(270,240);
     SDial->setValues(0,-3000,3000,0);
     SDial->setTimerType(40,4);
     SDial->Scale_decimal = false;
@@ -208,7 +208,7 @@ MainWindow::MainWindow(QWidget *parent)
     NDial->Value_Text = "%1Nm";
     NDial->iconfile = ":img/P";
     NDial->icon = QPixmap(":img/P");
-    NDial->setMinimumSize(290,270);
+    NDial->setMinimumSize(270,240);
     NDial->setValues(0,0,100,0);
     NDial->setTimerType(40,4);
     NDial->Scale_decimal = false;
@@ -220,7 +220,7 @@ MainWindow::MainWindow(QWidget *parent)
     PPDial->Value_Text = "%1W";
     PPDial->iconfile = ":img/PP";
     PPDial->icon = QPixmap(":img/PP");
-    PPDial->setMinimumSize(290,270);
+    PPDial->setMinimumSize(270,240);
     PPDial->setValues(0,0,1000,0);
     PPDial->setTimerType(40,4);
     PPDial->Scale_decimal = false;
@@ -233,7 +233,7 @@ MainWindow::MainWindow(QWidget *parent)
     TDial->Value_Text = "%1°";
     TDial->iconfile = ":img/T";
     TDial->icon = QPixmap(":img/T");
-    TDial->setMinimumSize(290,270);
+    TDial->setMinimumSize(270,240);
     TDial->setValues(0,0,120,0);
     TDial->setTimerType(40,4);
     TDial->Scale_decimal = false;
