@@ -163,13 +163,10 @@ MainWindow::MainWindow(QWidget *parent)
     VDial->Value_Text = "%1V";
     VDial->iconfile = ":img/V";
     VDial->icon = QPixmap(":img/V");
-    VDial->setMinimumSize(270,240);
+    VDial->setMinimumSize(250,240);
     VDial->setValues(0,0,48,0);
     VDial->setTimerType(40,4);
     VDial->Scale_decimal = false;
-//    VDial->isFlat = true;
-//    VDial->SingleSlideColor =QColor(0,0,0);           //划过的单颜色
-//    VDial->slideScaleColor = QColor(150,150,150);     //划过的刻度颜色
     VDial->setGradientColorMode(QList<QColor>()<<QColor(45,0,255)<<QColor(0,233,255)<<QColor(45,255,0)<<QColor(255,243,0)<<QColor(255,0,0));
 
 
@@ -178,7 +175,7 @@ MainWindow::MainWindow(QWidget *parent)
     ADial->Value_Text = "%1A";
     ADial->iconfile = ":img/A";
     ADial->icon = QPixmap(":img/A");
-    ADial->setMinimumSize(270,240);
+    ADial->setMinimumSize(250,240);
     ADial->setValues(0,-50,50,0);
     ADial->setTimerType(40,4);
     ADial->Scale_decimal = false;
@@ -193,13 +190,12 @@ MainWindow::MainWindow(QWidget *parent)
     SDial->Value_Text = "%1RPM";
     SDial->iconfile = ":img/S";
     SDial->icon = QPixmap(":img/S");
-    SDial->setMinimumSize(270,240);
+    SDial->setMinimumSize(250,240);
     SDial->setValues(0,-3000,3000,0);
     SDial->setTimerType(40,4);
     SDial->Scale_decimal = false;
     SDial->SingleSlideColor =QColor(0,0,0);           //划过的单颜色
     SDial->slideScaleColor = QColor(150,150,150);     //划过的刻度颜色
-
 //    SDial->setGradientColorMode(QList<QColor>()<<QColor(45,0,255)<<QColor(0,233,255)<<QColor(45,255,0)<<QColor(255,243,0)<<QColor(255,0,0));
 
 
@@ -208,7 +204,7 @@ MainWindow::MainWindow(QWidget *parent)
     NDial->Value_Text = "%1Nm";
     NDial->iconfile = ":img/P";
     NDial->icon = QPixmap(":img/P");
-    NDial->setMinimumSize(270,240);
+    NDial->setMinimumSize(250,240);
     NDial->setValues(0,0,100,0);
     NDial->setTimerType(40,4);
     NDial->Scale_decimal = false;
@@ -220,7 +216,7 @@ MainWindow::MainWindow(QWidget *parent)
     PPDial->Value_Text = "%1W";
     PPDial->iconfile = ":img/PP";
     PPDial->icon = QPixmap(":img/PP");
-    PPDial->setMinimumSize(270,240);
+    PPDial->setMinimumSize(250,240);
     PPDial->setValues(0,0,1000,0);
     PPDial->setTimerType(40,4);
     PPDial->Scale_decimal = false;
@@ -233,7 +229,7 @@ MainWindow::MainWindow(QWidget *parent)
     TDial->Value_Text = "%1°";
     TDial->iconfile = ":img/T";
     TDial->icon = QPixmap(":img/T");
-    TDial->setMinimumSize(270,240);
+    TDial->setMinimumSize(250,240);
     TDial->setValues(0,0,120,0);
     TDial->setTimerType(40,4);
     TDial->Scale_decimal = false;
@@ -249,8 +245,16 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::bolDataupdate(void)
 {
-//    VDial->setEndValue((float)chrtmp[20]);
-//    ADial->setEndValue((float)chrtmp[12]);
+    if(ui->btnSwitch->text() == "关闭串口")
+    {
+        VDial->setEndValue((float)chrtmp[20]);
+        ADial->setEndValue((float)chrtmp[12]);
+    }
+    else
+    {
+        VDial->setEndValue(0);
+        ADial->setEndValue(0);
+    }
 }
 
 
@@ -1090,6 +1094,8 @@ void MainWindow::QPlot_init(QCustomPlot *customPlot)
 
     // 设置坐标轴名称
     customPlot->xAxis->setLabel("三相电压");
+    customPlot->xAxis->setLabelColor(QColor(241,0,4));
+
     customPlot->yAxis->setLabel("");
 
     // 设置x,y坐标轴显示范围
@@ -1686,7 +1692,7 @@ void MainWindow::QPlot_init1(QCustomPlot *customPlot)
     QStringList lineNames;//设置图例的文本
     lineNames << "P" << "I" << "D";
     // 曲线初始颜色
-    QColor initColor[3] = {QColor(0,146,152), QColor(241,0,4), QColor(241,175,0)};//QColor(255,255,255)};//白色
+    QColor initColor[3] = {QColor(0,0,255), QColor(241,0,4), QColor(241,175,0)};//QColor(255,255,255)};//白色
     // 图表添加3条曲线，并设置初始颜色，和图例名称
 
         for(int i=0; i<plotCount; i++){
@@ -1707,6 +1713,7 @@ void MainWindow::QPlot_init1(QCustomPlot *customPlot)
 
     // 设置坐标轴名称
     customPlot->xAxis->setLabel("PID");
+    customPlot->xAxis->setLabelColor(QColor(241,0,4));
     customPlot->yAxis->setLabel("");
 
     // 设置x,y坐标轴显示范围
