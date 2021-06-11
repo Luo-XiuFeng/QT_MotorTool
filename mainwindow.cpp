@@ -144,10 +144,10 @@ MainWindow::MainWindow(QWidget *parent)
     // 绘图图表的设置控件初始化，主要用于关联控件的信号槽
     QPlot_widget_init1();
 
-    timer1 = new QTimer(this);
-    timer1->setInterval(1);
-    connect(timer1,SIGNAL(timeout()),this,SLOT(TimeData_Update1()));
-    timer1->start(10);
+//    timer1 = new QTimer(this);
+//    timer1->setInterval(1);
+//    connect(timer1,SIGNAL(timeout()),this,SLOT(TimeData_Update1()));
+//    timer1->start(10);
 
     // 关联控件初始化
     ui->txtPointOriginX_2->setEnabled(false);
@@ -176,9 +176,9 @@ MainWindow::MainWindow(QWidget *parent)
     ADial->iconfile = ":img/A";
     ADial->icon = QPixmap(":img/A");
     ADial->setMinimumSize(250,240);
-    ADial->setValues(0,-50,50,0);
+    ADial->setValues(0,-20,20,0);
     ADial->setTimerType(40,4);
-    ADial->Scale_decimal = false;
+    VDial->Scale_decimal = false;
 //    ADial->isFlat = true;
     ADial->SingleSlideColor =QColor(0,0,0);           //划过的单颜色
     ADial->slideScaleColor = QColor(150,150,150);     //划过的刻度颜色
@@ -193,7 +193,8 @@ MainWindow::MainWindow(QWidget *parent)
     SDial->setMinimumSize(250,240);
     SDial->setValues(0,-3000,3000,0);
     SDial->setTimerType(40,4);
-    SDial->Scale_decimal = false;
+    SDial->Scale_decimal  = 2;
+    SDial->center_decimal = 2;
     SDial->SingleSlideColor =QColor(0,0,0);           //划过的单颜色
     SDial->slideScaleColor = QColor(150,150,150);     //划过的刻度颜色
 //    SDial->setGradientColorMode(QList<QColor>()<<QColor(45,0,255)<<QColor(0,233,255)<<QColor(45,255,0)<<QColor(255,243,0)<<QColor(255,0,0));
@@ -205,7 +206,7 @@ MainWindow::MainWindow(QWidget *parent)
     NDial->iconfile = ":img/P";
     NDial->icon = QPixmap(":img/P");
     NDial->setMinimumSize(250,240);
-    NDial->setValues(0,0,100,0);
+    NDial->setValues(0,0,50,0);
     NDial->setTimerType(40,4);
     NDial->Scale_decimal = false;
     NDial->setGradientColorMode(QList<QColor>()<<QColor(45,0,255)<<QColor(0,233,255)<<QColor(45,255,0)<<QColor(255,243,0)<<QColor(255,0,0));
@@ -231,7 +232,7 @@ MainWindow::MainWindow(QWidget *parent)
     TDial->icon = QPixmap(":img/T");
     TDial->setMinimumSize(250,240);
     TDial->setValues(0,0,120,0);
-    TDial->setTimerType(40,4);
+    TDial->setTimerType(40,8);
     TDial->Scale_decimal = false;
     TDial->setGradientColorMode(QList<QColor>()<<QColor(45,0,255)<<QColor(0,233,255)<<QColor(45,255,0)<<QColor(255,243,0)<<QColor(255,0,0));
 
@@ -245,15 +246,62 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::bolDataupdate(void)
 {
-    if(ui->btnSwitch->text() == "关闭串口")
+    float  *va = NULL;
+    QLineEdit*   text;
+
+
+
+    if(ui->btnSwitch->text() == "关闭串口" && datavalid1 )
     {
-        VDial->setEndValue((float)chrtmp[20]);
-        ADial->setEndValue((float)chrtmp[12]);
+        va = (float*)&chrtmp[20];
+        VDial->setEndValue((*va));
+
+        if(!(*va)){
+            qDebug("%f", *va);
+        }
+
+        va = (float*)&chrtmp[24];
+        ADial->setEndValue(*va);
+
+        va = (float*)&chrtmp[28];
+        SDial->setEndValue(*va);
+
+        va = (float*)&chrtmp[32];
+        NDial->setEndValue(fabs(*va));
+
+        va = (float*)&chrtmp[36];
+        PPDial->setEndValue(fabs(*va));
+
+        va = (float*)&chrtmp[40];
+        TDial->setEndValue(fabs(*va));
+
+
+        va = (float*)&chrtmp[44];
+        if(!kpflag){
+        text = ui->Kp_spd;
+        text->setText(QString::number(*va,'g',5));
+}
+        va = (float*)&chrtmp[48];
+        text = ui->Ki_spd;
+        text->setText(QString::number(*va,'g',5));
+
+        va = (float*)&chrtmp[52];
+        text = ui->SpeedRef_krpm;
+        text->setText(QString::number(*va,'g',5));
+
+        va = (float*)&chrtmp[56];
+        text = ui->MaxAccel_krpmps;
+        text->setText(QString::number(*va,'g',5));
+
     }
-    else
+    else if(ui->btnSwitch->text() == "打开串口")
     {
         VDial->setEndValue(0);
         ADial->setEndValue(0);
+        SDial->setEndValue(0);
+        NDial->setEndValue(0);
+        PPDial->setEndValue(0);
+        TDial->setEndValue(0);
     }
 }
 
@@ -364,15 +412,40 @@ void MainWindow::paintEvent(QPaintEvent *)
 // 串口接收显示，槽函数
 void MainWindow::serialPortRead_Slot()
 {
-    /*QString recBuf;
-    recBuf = QString(mySerialPort->readAll());*/
-
     QByteArray recBuf;
+    static int rxlen = 0;
+
     recBuf = mySerialPort->readAll();
 
+    memcpy(&chrtmp1[rxlen],recBuf,recBuf.size());
+
+    rxlen += recBuf.size();
+
+    if(rxlen>=69)
+    {
+        for(int i=0;i<rxlen;i++)
+        {
+            if(chrtmp1[i] == 0x55 && chrtmp1[i+1] ==0x66 )
+            {
+                if(chrtmp1[chrtmp1[i+2]+i-2] == 0x66  && chrtmp1[chrtmp1[i+2]+i-1] == 0x55)
+                {
+                    memcpy(chrtmp,&chrtmp1[i+3],chrtmp1[i+2]-5);
+                    rxlen=0;
+                    datavalid  = true;
+                    datavalid1 = true;
+                }
+            }
+        }
+    }
+
+    if(rxlen>=1024)
+    {
+        rxlen=0;
+    }
+
     /* 帧过滤部分代码 */
-    short wmValue[20] = {0};
-    xFrameDataFilter(&recBuf, wmValue);
+//    short wmValue[20] = {0};
+//    xFrameDataFilter(&recBuf, wmValue);
 
     // 调试信息输出，显示缓冲区内容（16进制显示）及接收标志位
 //    if(!ui->widget_5->isHidden()){
@@ -406,24 +479,24 @@ void MainWindow::serialPortRead_Slot()
     setNumOnLabel(lblRecvNum, "R: ", recvNum);
 
     // 判断是否为16进制接收，将以后接收的数据全部转换为16进制显示（先前接收的部分在多选框槽函数中进行转换。最好多选框和接收区组成一个自定义控件，方便以后调用）
-    if(ui->chkRec->checkState() == false){
-        // GB2312编码输入
-        QString strb = QString::fromLocal8Bit(recBuf);//QString::fromUtf8(recBuf);//QString::fromLatin1(recBuf);
-        // 在当前位置插入文本，不会发生换行。如果没有移动光标到文件结尾，会导致文件超出当前界面显示范围，界面也不会向下滚动。
-//        ui->txtRec->insertPlainText(strb);
-    }else{
-        // 16进制显示，并转换为大写
-        QString str1 = recBuf.toHex().toUpper();//.data();
-        // 添加空格
-        QString str2;
-        for(int i = 0; i<str1.length (); i+=2)
-        {
-            str2 += str1.mid (i,2);
-            str2 += " ";
-        }
-//        ui->txtRec->insertPlainText(str2);
-        //ui->txtRec->insertPlainText(recBuf.toHex());
-    }
+//    if(ui->chkRec->checkState() == false){
+//        // GB2312编码输入
+//        QString strb = QString::fromLocal8Bit(recBuf);//QString::fromUtf8(recBuf);//QString::fromLatin1(recBuf);
+//        // 在当前位置插入文本，不会发生换行。如果没有移动光标到文件结尾，会导致文件超出当前界面显示范围，界面也不会向下滚动。
+////        ui->txtRec->insertPlainText(strb);
+//    }else{
+//        // 16进制显示，并转换为大写
+//        QString str1 = recBuf.toHex().toUpper();//.data();
+//        // 添加空格
+//        QString str2;
+//        for(int i = 0; i<str1.length (); i+=2)
+//        {
+//            str2 += str1.mid (i,2);
+//            str2 += " ";
+//        }
+////        ui->txtRec->insertPlainText(str2);
+//        //ui->txtRec->insertPlainText(recBuf.toHex());
+//    }
 
     // 移动光标到文本结尾
 //    ui->txtRec->moveCursor(QTextCursor::End);
@@ -730,15 +803,15 @@ void MainWindow::xFrameDataFilter(QByteArray *str, short value[])
     value[0] = value[0];
 
 
-    if(num)
-    {
-        for(int i=0; i<num; i++)
-        {
-            chrtmp[i] = str->at(i);
-        }
-        datavalid  = true;
-        datavalid1 = true;
-    }
+//    if(num)
+//    {
+//        for(int i=0; i<num; i++)
+//        {
+//            chrtmp[i] = str->at(i);
+//        }
+//        datavalid  = true;
+//        datavalid1 = true;
+//    }
 
 
 //    float val = 0;
@@ -1197,20 +1270,15 @@ void MainWindow::QPlot_widget_init(void)
 // 定时器溢出处理槽函数。用来生成曲线的坐标数据。
 void MainWindow::TimeData_Update(void)
 {
-//    // 生成坐标数据
-//    static float f;
-//    f += 0.01;
-//    //qDebug() << sin(f)*100;
-//    // 将坐标数据，传递给曲线
-////    ShowPlot_TimeDemo(pPlot1, sin(f)*100);
-//    ShowPlot_TimeDemo(pPlot1, f);
-
-
     if(datavalid){
         ShowPlot_WaveForm(pPlot1, (float*)chrtmp);
         datavalid = false;
+        cnt1++;
+        ShowPlot_WaveForm1(0,(float*)&chrtmp[12]);
+        ShowPlot_WaveForm1(1,(float*)&chrtmp[16]);
+        ShowPlot_WaveForm1(2,(float*)&chrtmp[60]);
+        ShowPlpt(pPlot2);
     }
-
 }
 
 // 曲线更新绘图，定时器绘图演示
@@ -1274,7 +1342,7 @@ void MainWindow::ShowPlot_WaveForm(QCustomPlot *customPlot, float value[])
 {
     cnt++;
     // 给曲线添加数据
-    for(int i=0; i<3; i++){
+    for(int i=0; i<plotCount; i++){
         //QString strNum = QString::number(num,'g',8);// double类型
         pTxtValueCurve[i]->setText(QString::number(value[i],'g',5));// 显示曲线当前值
         pCurve[i]->addData(cnt, value[i]);// 从原值获取数据
@@ -1690,12 +1758,12 @@ void MainWindow::QPlot_init1(QCustomPlot *customPlot)
 {
     // 添加曲线名称
     QStringList lineNames;//设置图例的文本
-    lineNames << "P" << "I" << "D";
+    lineNames << "Ref" << "Actual" << "Angle";
     // 曲线初始颜色
-    QColor initColor[3] = {QColor(0,0,255), QColor(241,0,4), QColor(241,175,0)};//QColor(255,255,255)};//白色
+    QColor initColor[3] = {QColor(241,0,4), QColor(0,0,255), QColor(241,175,0)};//QColor(255,255,255)};//白色
     // 图表添加3条曲线，并设置初始颜色，和图例名称
 
-        for(int i=0; i<plotCount; i++){
+        for(int i=0; i<plotCount1; i++){
             pCurve1[i] = customPlot->addGraph();
             pCurve1[i]->setPen(QPen(QColor(initColor[i])));
             pCurve1[i]->setName(lineNames.at(i));
@@ -1720,7 +1788,9 @@ void MainWindow::QPlot_init1(QCustomPlot *customPlot)
     pointCountX1 = ui->txtPointCountX_2->text().toUInt();
     pointCountY1 = ui->txtPointCountY_2->text().toUInt();
     customPlot->xAxis->setRange(0,pointCountX1);
-    customPlot->yAxis->setRange(pointCountY1/2*-1,pointCountY1/2);
+    customPlot->yAxis->setRange(ui-> txtPointOriginY_2->text().toUInt(),ui->txtPointCountY_2->text().toUInt());
+
+
 
     //customPlot->axisRect()->setupFullAxesBox();//四边安装轴并显示
     //customPlot->xAxis->ticker()->setTickOrigin(1);//改变刻度原点为1
@@ -1761,42 +1831,42 @@ void MainWindow::QPlot_widget_init1(void)
 
 
     // 设置颜色选择框的初始背景颜色，与曲线同步颜色
-    for(int i=0; i<plotCount; i++){
+    for(int i=0; i<plotCount1; i++){
         pBtnColourCurve1[i]->setStyleSheet(QString("border:0px solid;background-color: %1;").arg(QColor(pCurve1[i]->pen().color()).name()));
     }
 
 
 
     // 可见性选择框关联
-    for(int i=0; i<plotCount; i++){
+    for(int i=0; i<plotCount1; i++){
         connect(pChkVisibleCurve1[i], &QCheckBox::clicked, [=](){
             curveSetVisible_2(pPlot2, pCurve1[i], pChkVisibleCurve1[i]->checkState());
         });
     }
 
     // 颜色选择框关联
-    for(int i=0; i<plotCount; i++){
+    for(int i=0; i<plotCount1; i++){
         connect(pBtnColourCurve1[i], &QPushButton::clicked, [=](){
             curveSetColor_2(pPlot2, pCurve1[i], pBtnColourCurve1[i]);
         });
     }
 
     // 加粗显示多选框关联。尽量别用，会导致CPU使用率升高
-    for(int i=0; i<plotCount; i++){
+    for(int i=0; i<plotCount1; i++){
         connect(pRdoBoldCurve1[i], &QRadioButton::clicked, [=](){
             curveSetBold_2(pPlot2, pCurve1[i], pRdoBoldCurve1[i]->isChecked());
         });
     }
 
     // 曲线样式选择关联
-    for(int i=0; i<plotCount; i++){
+    for(int i=0; i<plotCount1; i++){
         connect(pCmbLineStyle1[i], &QComboBox::currentTextChanged, [=](){
             curveSetLineStyle_2(pPlot2, pCurve1[i], pCmbLineStyle1[i]->currentIndex());
         });
     }
 
     // 散点样式选择关联
-    for(int i=0; i<plotCount; i++){
+    for(int i=0; i<plotCount1; i++){
         connect(pCmbScatterStyle1[i], &QComboBox::currentTextChanged, [=](){
             curveSetScatterStyle_2(pPlot2, pCurve1[i], pCmbScatterStyle1[i]->currentIndex()+1);});
         pCmbScatterStyle1[i]->setIconSize(QSize(25,17)); // 设置图片显示像素大小，不然会默认大小显示会模糊;
@@ -1824,8 +1894,10 @@ void MainWindow::TimeData_Update1(void)
 //    ShowPlot_TimeDemo(pPlot2, sin(f)*100);
     if(datavalid1)
     {
-        ShowPlot_WaveForm1(pPlot2, (float*)&chrtmp[12]);
-        datavalid1 = false;
+
+
+
+
     }
 
 }
@@ -1880,18 +1952,21 @@ void MainWindow::ShowPlot_TimeDemo1(QCustomPlot *customPlot, double num)
 }
 
 // 曲线更新绘图，波形数据绘图
-void MainWindow::ShowPlot_WaveForm1(QCustomPlot *customPlot, float value[])
+void MainWindow::ShowPlot_WaveForm1(int drawing,float* value)
 {
-    cnt1++;
+
     // 给曲线添加数据
-    for(int i=0; i<2; i++){
+
         //QString strNum = QString::number(num,'g',8);// double类型
-        pTxtValueCurve1[i]->setText(QString::number(value[i]));// 显示曲线当前值
-        pCurve1[i]->addData(cnt1, value[i]);// 从原值获取数据
+        pTxtValueCurve1[drawing]->setText(QString::number(*value));// 显示曲线当前值
+        pCurve1[drawing]->addData(cnt1, fabs(*value));// 从原值获取数据
         //pCurve[i]->addData(cnt, pTxtValueCurve[i]->text().toShort());// 从输入框获取数据
         // 因为20条线重叠在一起，所以QCustomPlot输入为0时看起来像不显示，隐藏其他后观察单条曲线是可以看到显示的
-    }
+}
 
+
+void MainWindow::ShowPlpt(QCustomPlot *customPlot)
+{
     // 设置x坐标轴显示范围，使其自适应缩放x轴，x轴最大显示pointCountX个点。与chkTrackX复选框有关
     if(ui->chkTrackX_2->checkState()){
         //customPlot->xAxis->setRange((pCurve[0]->dataCount()>pointCountX)?(pCurve[0]->dataCount()-pointCountX):0, pCurve[0]->dataCount());
@@ -1924,8 +1999,9 @@ void MainWindow::ShowPlot_WaveForm1(QCustomPlot *customPlot, float value[])
 //        lastFpsKey = key;
 //        frameCount = 0;
 //    }
-
 }
+
+
 
 /* 功能：隐藏/显示曲线n
  * QCustomPlot *pPlot：父控件，绘图图表
@@ -2553,11 +2629,50 @@ QColor MainWindow::GetUsefullColor(int i)
     }
 }
 
-
-
-
-void MainWindow::on_txtMainScaleNumY_3_returnPressed()
+void MainWindow::on_Kp_spd_returnPressed()
 {
-    VDial->setEndValue(ui->txtMainScaleNumY_3->text().toDouble());
+    QByteArray sendData;
+    QString data ;
+    float fdata ;
 
+    data  =  ui->Kp_spd->text();
+    fdata = data.toFloat(0);
+    SetPressed(0,fdata);
+     kpflag=false;
 }
+
+void MainWindow::SetPressed(int cmd,float data)
+{
+    QByteArray senddata;
+
+    char *p=(char*)&data;
+
+    senddata.append(0x55);
+    senddata.append(0x66);
+    senddata.append(cmd);
+    senddata.append(sizeof(float)+4);
+    senddata.append(*p);
+    senddata.append(*(p+1));
+    senddata.append(*(p+2));
+    senddata.append(*(p+3));
+
+    // 如发送成功，会返回发送的字节长度。失败，返回-1。
+    int a = mySerialPort->write(senddata);
+    // 发送字节计数并显示
+    if(a > 0)
+    {
+        // 发送字节计数
+        sendNum += a;
+        // 状态栏显示计数值
+        setNumOnLabel(lblSendNum, "S: ", sendNum);
+    }
+}
+
+
+void MainWindow::on_Kp_spd_cursorPositionChanged(int arg1, int arg2)
+{
+    kpflag=true;
+}
+
+
+

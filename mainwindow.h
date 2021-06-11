@@ -14,7 +14,7 @@
 #include "Dial.h"
 
 // 接收缓冲区大小，单位字节
-#define BufferSize      1024
+#define BufferSize      2048
 
 
 QT_BEGIN_NAMESPACE
@@ -110,8 +110,9 @@ private:
     Dial*  ADial;        //电流表
     Dial*  SDial;        //速度表
     Dial*  NDial;        //扭矩表
-    Dial*  TDial;        //温度表
     Dial*  PPDial;       //功率表
+    Dial*  TDial;        //温度表
+
 
     QTimer *dataupdate;
 
@@ -237,7 +238,7 @@ public:
     QCustomPlot *pPlot1;
     int datavalid = 0;
     int datavalid1 = 0;
-
+    int kpflag=0;
     void ShowPlot_TimeDemo(QCustomPlot *customPlot, double num);
     void ShowPlot_WaveForm(QCustomPlot *customPlot, float value[]);
 
@@ -281,7 +282,8 @@ public:
     int pointCountX=0;
     int pointCountY=0;
 
-    int plotCount = 3;
+    int plotCount  = 3;
+    int plotCount1 = 3;
 
     double cnt=0;// 当前绘图的X坐标
 
@@ -321,8 +323,8 @@ public:
     QCustomPlot *pPlot2;
 
     void ShowPlot_TimeDemo1(QCustomPlot *customPlot, double num);
-    void ShowPlot_WaveForm1(QCustomPlot *customPlot, float value[]);
-
+    void ShowPlot_WaveForm1(int drawing,float* value);
+    void ShowPlpt(QCustomPlot *customPlot);
 private slots:
     void TimeData_Update1(void);
 
@@ -372,8 +374,17 @@ private slots:
 
 
 
+    void SetPressed(int cmd,float data);
 
-    void on_txtMainScaleNumY_3_returnPressed();
+
+
+
+
+
+    void on_Kp_spd_returnPressed();
+
+    void on_Kp_spd_cursorPositionChanged(int arg1, int arg2);
+
 
 public:
     // 定时器指针
@@ -386,7 +397,7 @@ public:
     int pointCountX1=0;
     int pointCountY1=0;
 
-    int plotCount1 = 3;
+
 
     double cnt1=0;// 当前绘图的X坐标
 
