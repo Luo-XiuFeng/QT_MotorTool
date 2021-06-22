@@ -6,7 +6,7 @@
 ![GitHub forks](https://img.shields.io/github/forks/snowdreams1006/snowdreams1006.github.io.svg?style=social)	
 ![GitHub stars](https://img.shields.io/github/stars/snowdreams1006/snowdreams1006.github.io.svg?style=social)	
 ![GitHub watchers](https://img.shields.io/github/watchers/snowdreams1006/snowdreams1006.github.io.svg?style=social)
-<div align=center><img width="1024" height="600" src="https://github.com/LXiuFeng/QT_MotorTool/blob/main/img/QQ%E5%9B%BE%E7%89%8720210611085033.jpg"></div>
+<div align=center><img width="1024" height="400" src="https://github.com/LXiuFeng/QT_MotorTool/blob/main/img/QQ%E5%9B%BE%E7%89%8720210611085033.jpg"></div>
 
 
 # 简介
